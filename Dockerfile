@@ -2,8 +2,10 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-COPY build/libs/*.jar app.jar
+# Копируем JAR
+COPY build/libs/currency-monitor.jar app.jar
 
 EXPOSE 8089
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Запускаем с ожиданием MongoDB
+ENTRYPOINT ["sh", "-c", "sleep 5 && java -jar app.jar"]

@@ -1,22 +1,25 @@
 package zawr.currencymonitor.service;
 
-import zawr.currencymonitor.model.CurrencyRate;
-import zawr.currencymonitor.properties.AppProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import java.util.Arrays;
+import zawr.currencymonitor.model.CurrencyRate;
+import zawr.currencymonitor.properties.AppProperties;
+
 import java.util.List;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class SovcombankApiService {
 
     private final WebClient webClient;
     private final AppProperties appProperties;
+
+    public SovcombankApiService(WebClient webClient, AppProperties appProperties) {
+        this.webClient = webClient;
+        this.appProperties = appProperties;
+        log.info("SovcombankApiService initialized with WebClient");
+    }
 
     public List<CurrencyRate> fetchCurrencyRates() {
         try {

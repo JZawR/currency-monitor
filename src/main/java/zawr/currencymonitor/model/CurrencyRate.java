@@ -24,10 +24,10 @@ public class CurrencyRate {
 
     private Long messageId;
     private String type;
-    private String base;      // USD, EUR...
-    private String quot;      // RUB
+    private String base;
+    private String quot;
     private String buy;
-    private String sell;      // ← ключевое поле
+    private String sell;
     private String departmentId;
 
     private java.util.List<Interval> intervals;

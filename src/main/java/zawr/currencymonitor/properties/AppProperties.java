@@ -12,8 +12,6 @@ public class AppProperties {
     private Telegram telegram = new Telegram();
     private Scheduler scheduler = new Scheduler();
     private History history = new History();
-    // === Настройки анти-спама ===
-
 
     @Data
     public static class Sovcombank {
@@ -29,7 +27,7 @@ public class AppProperties {
         private String chatId;
         private Double thresholdUsdSell = 80.0;
         private Boolean antiSpamEnabled = true;
-        private Long alertCooldownMinutes = 60L;  // не чаще раза в час
+        private Long alertCooldownMinutes = 60L;
     }
 
     @Data
@@ -40,10 +38,5 @@ public class AppProperties {
     @Data
     public static class History {
         private int retentionDays = 90;
-    }
-
-    @Data
-    public static class Alert {
-        private Long cooldownMinutes = 60L;  // дублируем для удобства
     }
 }

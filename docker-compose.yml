@@ -1,29 +1,46 @@
 version: '3.8'
 
 services:
-  # УДАЛЯЕМ или КОММЕНТИРУЕМ секцию 'mongo' — она нам больше не нужна
-  # mongo:
-  #   image: mongo:7
-  #   ...
+  mongo:
+    image: mongo:7
+    container_name: currency-monitor-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: currency_monitor
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - currency-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
-    container_name: currency-monitor
-    # depends_on больше не нужен, так как mongo внешний
-    extra_hosts:
-      - "host.docker.internal:host-gateway"  # ← Ключевая строка для Windows!
+    container_name: currency-monitor-app
+    depends_on:
+      mongo:
+        condition: service_healthy
     environment:
-      # Подключаемся к хосту по специальному имени
-      - MONGODB_URI=mongodb://host.docker.internal:27017/currency_monitor
-      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
-      - MONGO_INITDB_ROOT_PASSWORD=root
+      - MONGODB_URI=mongodb://mongoadmin:root@mongo:27017/currency_monitor?authSource=admin
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
     ports:
       - "8089:8089"
+    networks:
+      - currency-network
     restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+
+networks:
+  currency-network:
+    driver: bridge
+
+volumes:
+  mongo_data:

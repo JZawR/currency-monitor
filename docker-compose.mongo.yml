@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: currency-monitor-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: currency_monitor
+    ports:
+      - "27018:27017"  # Используем другой порт, чтобы не конфликтовать с другим проектом
+    volumes:
+      - currency_monitor_mongo_data:/data/db
+    networks:
+      - currency-monitor-network
+    command: mongod --port 27017
+
+networks:
+  currency-monitor-network:
+    driver: bridge
+
+volumes:
+  currency_monitor_mongo_data:

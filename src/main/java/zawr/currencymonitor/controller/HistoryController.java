@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import zawr.currencymonitor.model.AlertState;
+import zawr.currencymonitor.model.CurrencyRate;
 import zawr.currencymonitor.repository.AlertStateRepository;
 import zawr.currencymonitor.repository.CurrencyRateRepository;
-import zawr.currencymonitor.model.CurrencyRate;
 import zawr.currencymonitor.service.HistoryService;
 
 import java.time.LocalDateTime;
