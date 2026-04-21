@@ -1,5 +1,8 @@
 package zawr.currencymonitor.service;
 
+import jakarta.annotation.PostConstruct;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import zawr.currencymonitor.properties.AppProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,24 +14,40 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class TelegramNotificationService extends TelegramLongPollingBot {
-
     private final AppProperties appProperties;
 
-    @Override
-    public void onUpdateReceived(Update update) {
-        // Не обрабатываем входящие сообщения, только отправляем уведомления
+    public TelegramNotificationService(AppProperties appProperties) {
+        super(appProperties.getTelegram().getBotToken());
+        this.appProperties = appProperties;
+
+        // Небольшая задержка для гарантии инициализации
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        log.info("Telegram bot initialized");
     }
 
     @Override
     public String getBotUsername() {
-        return appProperties.getTelegram().getBotUsername(); // опционально
+        String username = appProperties.getTelegram().getBotUsername();
+        log.debug("getBotUsername() called, returning: '{}'", username);
+        return username;
     }
 
     @Override
     public String getBotToken() {
-        return appProperties.getTelegram().getBotToken();
+        String token = appProperties.getTelegram().getBotToken();
+        log.debug("getBotToken() called, returning: '{}'", token != null ? "***" + token.substring(Math.max(0, token.length()-5)) : "null");
+        return token;
+    }
+
+    @Override
+    public void onUpdateReceived(Update update) {
+        // Не обрабатываем входящие сообщения, только отправляем уведомления
     }
 
     public void sendUsdRateAlert(Double currentRate, Double threshold) {

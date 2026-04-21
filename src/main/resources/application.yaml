@@ -12,6 +12,10 @@ spring:
       username: mongoadmin
       password: root
       authentication-database: admin
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
 
 app:
   sovcombank:
@@ -20,6 +24,7 @@ app:
     type: FIZ_NAL
   telegram:
     bot-token: ${TELEGRAM_BOT_TOKEN:dummy_token_for_tests}
+    bot-username: ${TELEGRAM_BOT_USERNAME:}  # Добавьте, даже если пустая строка
     chat-id: ${TELEGRAM_CHAT_ID:123456789}
     threshold-usd-sell: 80.0
     anti-spam-enabled: true

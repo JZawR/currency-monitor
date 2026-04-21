@@ -1,6 +1,7 @@
 package zawr.currencymonitor.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import zawr.currencymonitor.model.AlertState;
 import zawr.currencymonitor.repository.AlertStateRepository;
 import zawr.currencymonitor.repository.CurrencyRateRepository;
 import zawr.currencymonitor.model.CurrencyRate;
+import zawr.currencymonitor.service.HistoryService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/history")
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class HistoryController {
 
     private final CurrencyRateRepository repository;
     private final AlertStateRepository alertRepository;
+    private final HistoryService historyService;
 
     // 📊 Детальная история (все записи)
     @GetMapping("/raw")
@@ -46,8 +50,9 @@ public class HistoryController {
             @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now()}")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
+        // ИСПРАВЛЕНО: используем historyService вместо прямого вызова repository
         return ResponseEntity.ok(
-                repository.findDailyStats(base, quot, from, to)
+                historyService.getDailyStats(base, quot, from, to)
         );
     }
 
@@ -61,9 +66,10 @@ public class HistoryController {
             @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now()}")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
-        return ResponseEntity.ok(
-                repository.findHourlyHistory(base, quot, from, to)
-        );
+        // ИСПРАВЛЕНО: используем historyService вместо прямого вызова repository
+        List<CurrencyRateRepository.HourlyRatePoint> result = historyService.getHourlyHistory(base, quot, from, to);
+        log.info("getHourlyHistory: {} entries", result.size());
+        return ResponseEntity.ok(result);
     }
 
     // 🎯 Последнее значение + статистика за 24ч

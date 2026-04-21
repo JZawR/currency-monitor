@@ -27,36 +27,59 @@ public interface CurrencyRateRepository extends MongoRepository<CurrencyRate, St
     List<CurrencyRate> findHistoryByPeriod(
             String base, String quot, LocalDateTime from, LocalDateTime to);
 
+    @Query("{ 'base': ?0, 'quot': ?1, 'createdAt.date.date': { $gte: ?2, $lte: ?3 } }")
+    List<CurrencyRate> findByBaseAndQuotAndCreatedAtDateDateBetween(
+            String base, String quot, String from, String to);
     // Агрегация: средние значения по дням (для сводного графика)
     @Aggregation(pipeline = {
             "{ $match: { base: ?0, quot: ?1, 'createdAt.date.date': { $gte: ?2, $lte: ?3 } } }",
-            "{ $group: { ",
-            "  _id: { $dateTrunc: { date: { $toDate: '$createdAt.date.date' }, unit: 'day' } },",
-            "  avgBuy: { $avg: { $toDouble: '$buy' } },",
-            "  avgSell: { $avg: { $toDouble: '$sell' } },",
-            "  minSell: { $min: { $toDouble: '$sell' } },",
-            "  maxSell: { $max: { $toDouble: '$sell' } },",
-            "  count: { $sum: 1 }",
-            "}}",
+            "{ $addFields: { " +
+                    "  convertedDate: { " +
+                    "    $dateFromString: { " +
+                    "      dateString: { $substr: ['$createdAt.date.date', 0, 19] }, " +
+                    "      format: '%Y-%m-%d %H:%M:%S' " +
+                    "    } " +
+                    "  } " +
+                    "} }",
+            "{ $group: { " +
+                    "  _id: { $dateTrunc: { date: '$convertedDate', unit: 'day' } }, " +
+                    "  avgBuy: { $avg: { $toDouble: '$buy' } }, " +
+                    "  avgSell: { $avg: { $toDouble: '$sell' } }, " +
+                    "  minSell: { $min: { $toDouble: '$sell' } }, " +
+                    "  maxSell: { $max: { $toDouble: '$sell' } }, " +
+                    "  count: { $sum: 1 } " +
+                    "} }",
             "{ $sort: { _id: 1 } }",
-            "{ $project: { ",
-            "  _id: 0, ",
-            "  date: '$_id', ",
-            "  avgBuy: 1, avgSell: 1, minSell: 1, maxSell: 1, count: 1 ",
-            "}}"
+            "{ $project: { " +
+                    "  _id: 0, " +
+                    "  date: '$_id', " +
+                    "  avgBuy: 1, " +
+                    "  avgSell: 1, " +
+                    "  minSell: 1, " +
+                    "  maxSell: 1, " +
+                    "  count: 1 " +
+                    "} }"
     })
     List<DailyRateStats> findDailyStats(String base, String quot, LocalDateTime from, LocalDateTime to);
 
-    // Агрегация: по часам (для детального графика за последние 24-48ч)
+
     @Aggregation(pipeline = {
             "{ $match: { base: ?0, quot: ?1, 'createdAt.date.date': { $gte: ?2, $lte: ?3 } } }",
-            "{ $group: { ",
-            "  _id: { $dateTrunc: { date: { $toDate: '$createdAt.date.date' }, unit: 'hour' } },",
-            "  lastSell: { $last: { $toDouble: '$sell' } },",
-            "  lastBuy: { $last: { $toDouble: '$buy' } }",
-            "}}",
+            "{ $addFields: { " +
+                    "  convertedDate: { " +
+                    "    $dateFromString: { " +
+                    "      dateString: { $substr: ['$createdAt.date.date', 0, 19] }, " +
+                    "      format: '%Y-%m-%d %H:%M:%S' " +
+                    "    } " +
+                    "  } " +
+                    "} }",
+            "{ $group: { " +
+                    "  _id: { $dateTrunc: { date: '$convertedDate', unit: 'hour' } }, " +
+                    "  lastSell: { $last: { $toDouble: '$sell' } }, " +
+                    "  lastBuy: { $last: { $toDouble: '$buy' } } " +
+                    "} }",
             "{ $sort: { _id: 1 } }",
-            "{ $project: { _id: 0, date: '$_id', sell: '$lastSell', buy: '$lastBuy' }}"
+            "{ $project: { _id: 0, date: '$_id', sell: '$lastSell', buy: '$lastBuy' } }"
     })
     List<HourlyRatePoint> findHourlyHistory(String base, String quot, LocalDateTime from, LocalDateTime to);
 
