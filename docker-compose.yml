@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # УДАЛЯЕМ или КОММЕНТИРУЕМ секцию 'mongo' — она нам больше не нужна
+  # mongo:
+  #   image: mongo:7
+  #   ...
+
+  app:
+    build: .
+    container_name: currency-monitor
+    # depends_on больше не нужен, так как mongo внешний
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # ← Ключевая строка для Windows!
+    environment:
+      # Подключаемся к хосту по специальному имени
+      - MONGODB_URI=mongodb://host.docker.internal:27017/currency_monitor
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    ports:
+      - "8089:8089"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
