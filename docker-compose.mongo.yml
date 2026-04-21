@@ -12,6 +12,7 @@ services:
     ports:
       - "27018:27017"  # Используем другой порт, чтобы не конфликтовать с другим проектом
     volumes:
+      - mongodb_data:/data/db
       - currency_monitor_mongo_data:/data/db
     networks:
       - currency-monitor-network
@@ -22,4 +23,6 @@ networks:
     driver: bridge
 
 volumes:
+  mongo_data:  # ✅ Объявлен, но это локальный volume
   currency_monitor_mongo_data:
+    name: currency_monitor_mongodb_data  # Фиксированное имя (опционально)

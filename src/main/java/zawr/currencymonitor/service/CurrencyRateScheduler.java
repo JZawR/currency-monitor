@@ -36,18 +36,20 @@ public class CurrencyRateScheduler {
             return;
         }
 
-        // Сохраняем курсы (без дубликатов)
         rates.stream()
-                .filter(rate -> !currencyRepository.existsById(String.valueOf(rate.getId())))
-                .forEach(currencyRepository::save);
+                .filter(rate -> "USD".equalsIgnoreCase(rate.getBase()))
+                .forEach(rate -> {
+                    rate.generateUniqueId();
+                    currencyRepository.save(rate);
+                });
 
-        // Проверяем USD/RUB sell
+// Проверяем USD/RUB sell
         rates.stream()
                 .filter(r -> "USD".equalsIgnoreCase(r.getBase()) && "RUB".equalsIgnoreCase(r.getQuot()))
                 .findFirst()
-                .ifPresent(usdRate -> checkAndNotify(usdRate));
+                .ifPresent(this::checkAndNotify);
 
-        log.info("Scheduled check completed");
+        log.info("Scheduled check completed: {}", rates);
     }
 
     /**

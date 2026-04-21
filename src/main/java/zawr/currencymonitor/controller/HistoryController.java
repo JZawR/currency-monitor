@@ -15,6 +15,7 @@ import zawr.currencymonitor.repository.CurrencyRateRepository;
 import zawr.currencymonitor.service.HistoryService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +49,18 @@ public class HistoryController {
     public ResponseEntity<List<CurrencyRateRepository.DailyRateStats>> getDailyStats(
             @RequestParam(defaultValue = "USD") String base,
             @RequestParam(defaultValue = "RUB") String quot,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now().minusDays(30)}")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now()}")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
-        // ИСПРАВЛЕНО: используем historyService вместо прямого вызова repository
+        if (from == null) from = LocalDateTime.now().minusDays(30);
+        if (to == null) to = LocalDateTime.now();
+
+        // Теперь используем агрегацию из репозитория
+        String fromStr = from.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String toStr = to.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
         return ResponseEntity.ok(
-                historyService.getDailyStats(base, quot, from, to)
+                repository.findDailyStats(base, quot, fromStr, toStr)
         );
     }
 
@@ -64,13 +69,16 @@ public class HistoryController {
     public ResponseEntity<List<CurrencyRateRepository.HourlyRatePoint>> getHourlyHistory(
             @RequestParam(defaultValue = "USD") String base,
             @RequestParam(defaultValue = "RUB") String quot,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now().minusHours(48)}")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDateTime).now()}")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
-        // ИСПРАВЛЕНО: используем historyService вместо прямого вызова repository
-        List<CurrencyRateRepository.HourlyRatePoint> result = historyService.getHourlyHistory(base, quot, from, to);
+        if (from == null) from = LocalDateTime.now().minusHours(48);
+        if (to == null) to = LocalDateTime.now();
+
+        String fromStr = from.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String toStr = to.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<CurrencyRateRepository.HourlyRatePoint> result = repository.findHourlyHistory(base, quot, fromStr, toStr);
         log.info("getHourlyHistory: {} entries", result.size());
         return ResponseEntity.ok(result);
     }

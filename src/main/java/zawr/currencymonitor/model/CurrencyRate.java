@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 @Builder
@@ -42,6 +43,10 @@ public class CurrencyRate {
     @Builder.Default
     private boolean notificationSent = false;
 
+    // Добавляем поле для хранения времени получения/создания записи
+    @Builder.Default
+    private LocalDateTime fetchedAt = LocalDateTime.now();
+
     public Double getSellAsDouble() {
         try {
             return Double.parseDouble(sell);
@@ -49,6 +54,18 @@ public class CurrencyRate {
             return null;
         }
     }
+
+    // Метод для генерации уникального ID перед сохранением
+    public void generateUniqueId() {
+        if (this.id == null) {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+            String pair = String.format("%s_%s",
+                    base != null ? base : "UNKNOWN",
+                    quot != null ? quot : "UNKNOWN");
+            this.id = String.format("%s_%s_%s", pair, timestamp, messageId != null ? messageId : "0");
+        }
+    }
+
 
     @Data
     @NoArgsConstructor
