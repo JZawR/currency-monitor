@@ -1,16 +1,9 @@
 package zawr.currencymonitor.model;
 
 
-public class CurrencyRateMapper {
+import zawr.currencymonitor.entity.CurrencyRateEntity;
 
-    public static CurrencyRate entityToModel(CurrencyRateEntity rateEntity) {
-        CurrencyRate model = new CurrencyRate();
-        model.setId(rateEntity.getId());
-        model.setSell(rateEntity.getSell());
-        model.setBase(rateEntity.getBase());
-        model.setFetchedAt(rateEntity.getFetchedAt());
-        return model;
-    }
+public class CurrencyRateMapper {
 
     public static CurrencyRateEntity modelToEntity(CurrencyRate model) {
         CurrencyRateEntity rateEntity = new CurrencyRateEntity();

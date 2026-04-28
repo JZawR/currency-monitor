@@ -22,7 +22,7 @@ public class AlertState {
 
     @Indexed(unique = true)
     private String key;  // например: "USD:RUB:SELL:80.0"
-
+    private String telegramChatId;
     private String base;
     private String quot;
     private String rateType; // "BUY" или "SELL"
@@ -32,10 +32,4 @@ public class AlertState {
     private LocalDateTime lastAlertAt;   // когда отправили
     private LocalDateTime lastCheckedAt; // последний раз проверяли
     private Double lastCheckedRate;      // какое было значение
-
-    // Уникальный ключ для поиска
-    public static String makeKey(String base, String quot, String rateType, Double threshold) {
-        return String.format("%s:%s:%s:%.2f",
-                base.toUpperCase(), quot.toUpperCase(), rateType.toUpperCase(), threshold);
-    }
 }

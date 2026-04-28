@@ -1,4 +1,4 @@
-package zawr.currencymonitor.model;
+package zawr.currencymonitor.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

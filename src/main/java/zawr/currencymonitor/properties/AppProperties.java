@@ -23,7 +23,7 @@ public class AppProperties {
     public static class Telegram {
         private String botToken;
         private String botUsername; // опционально
-        private String chatId;
+//        private String chatId;
         private Double thresholdUsdSell = 80.0;
         private Boolean antiSpamEnabled = true;
         private Long alertCooldownMinutes = 60L;
