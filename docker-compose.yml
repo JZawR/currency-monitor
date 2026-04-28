@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongo:
     image: mongo:7
@@ -27,33 +25,26 @@ services:
       dockerfile: Dockerfile
       args:
         - BUILD_TIME=${BUILD_TIME:-unknown}
-    image: currency-monitor:latest
-    pull_policy: build
+    # Убираем строку image вообще или делаем так:
+    # image: currency-monitor-app:${TAG:-latest}
     container_name: currency-monitor-app
     depends_on:
       mongo:
         condition: service_healthy
     environment:
-      # MongoDB (внутри сети Docker)
       - MONGODB_URI=mongodb://mongoadmin:root@mongo:27017/currency_monitor?authSource=admin
-
-      # PostgreSQL (на хосте) — используем special DNS имя host.docker.internal
       - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/test
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-
-      # Telegram
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - TELEGRAM_BOT_USERNAME=sovcombank_currency_bot
     ports:
       - "8089:8089"
     networks:
       - currency-network
     restart: unless-stopped
-
-    # 🔑 Ключевое: разрешаем контейнеру обращаться к хосту по имени host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

@@ -2,8 +2,8 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Копируем JAR
-COPY build/libs/currency-monitor.jar app.jar
+# Копируем JAR — используем шаблон, чтобы подхватывал любое имя
+COPY build/libs/*.jar app.jar
 
 EXPOSE 8089
 
