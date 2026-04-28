@@ -1,15 +1,16 @@
 package zawr.currencymonitor.service;
 
 import jakarta.annotation.PostConstruct;
-import zawr.currencymonitor.model.CurrencyRate;
-import zawr.currencymonitor.model.AlertState;
-import zawr.currencymonitor.properties.AppProperties;
-import zawr.currencymonitor.repository.CurrencyRateRepository;
-import zawr.currencymonitor.repository.AlertStateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import zawr.currencymonitor.model.AlertState;
+import zawr.currencymonitor.model.CurrencyRate;
+import zawr.currencymonitor.model.CurrencyRateMapper;
+import zawr.currencymonitor.properties.AppProperties;
+import zawr.currencymonitor.repository.AlertStateRepository;
+import zawr.currencymonitor.repository.CurrencyRateRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,16 +41,14 @@ public class CurrencyRateScheduler {
                 .filter(rate -> "USD".equalsIgnoreCase(rate.getBase()))
                 .forEach(rate -> {
                     rate.generateUniqueId();
-                    currencyRepository.save(rate);
+                    currencyRepository.save(CurrencyRateMapper.modelToEntity(rate));
+
                 });
 
-// Проверяем USD/RUB sell
         rates.stream()
                 .filter(r -> "USD".equalsIgnoreCase(r.getBase()) && "RUB".equalsIgnoreCase(r.getQuot()))
                 .findFirst()
                 .ifPresent(this::checkAndNotify);
-
-        log.info("Scheduled check completed: {}", rates);
     }
 
     /**
@@ -117,7 +116,7 @@ public class CurrencyRateScheduler {
             }
 
             if (shouldNotify) {
-                sendAlert(rate, currentSell, threshold, reason);
+                sendAlert(currentSell, threshold, reason);
                 state.setAlertSent(true);
                 state.setLastAlertAt(LocalDateTime.now());
             }
@@ -139,27 +138,20 @@ public class CurrencyRateScheduler {
                 currentSell, threshold, shouldNotify, reason);
     }
 
-    private void sendAlert(CurrencyRate rate, Double currentSell, Double threshold, String reason) {
+    private void sendAlert(Double currentSell, Double threshold, String reason) {
         String message = String.format(
-                "🔔 *Внимание! Курс упал!*\n" +
-                        "💵 USD/RUB (sell): *%.2f*\n" +
-                        "📉 Порог: %.2f\n" +
-                        "⏰ %s\n" +
-                        "🔍 Причина: %s",
+                """
+                        🔔 *Внимание! Курс упал!*
+                        💵 USD/RUB (sell): *%.2f*
+                        📉 Порог: %.2f
+                        ⏰ %s
+                        🔍 Причина: %s""",
                 currentSell, threshold,
                 java.time.LocalDateTime.now(),
                 reason
         );
-        telegramService.sendUsdRateAlert(currentSell, threshold);
+        telegramService.sendUsdRateAlert(message);
         log.info("Alert sent: USD sell {} < {} (reason: {})", currentSell, threshold, reason);
-    }
-
-    // Очистка старой истории (оставляем как было)
-    @Scheduled(cron = "0 0 3 * * *")
-    public void cleanupOldHistory() {
-        var retentionDays = appProperties.getHistory().getRetentionDays();
-        var cutoff = LocalDateTime.now().minusDays(retentionDays);
-        // ... реализация очистки ...
     }
 
     @PostConstruct

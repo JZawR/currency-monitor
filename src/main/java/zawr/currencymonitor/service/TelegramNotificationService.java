@@ -1,16 +1,12 @@
 package zawr.currencymonitor.service;
 
-import jakarta.annotation.PostConstruct;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import zawr.currencymonitor.properties.AppProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import zawr.currencymonitor.properties.AppProperties;
 
 @Service
 @Slf4j
@@ -41,7 +37,7 @@ public class TelegramNotificationService extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         String token = appProperties.getTelegram().getBotToken();
-        log.debug("getBotToken() called, returning: '{}'", token != null ? "***" + token.substring(Math.max(0, token.length()-5)) : "null");
+        log.debug("getBotToken() called, returning: '{}'", token != null ? "***" + token.substring(Math.max(0, token.length() - 5)) : "null");
         return token;
     }
 
@@ -50,15 +46,7 @@ public class TelegramNotificationService extends TelegramLongPollingBot {
         // Не обрабатываем входящие сообщения, только отправляем уведомления
     }
 
-    public void sendUsdRateAlert(Double currentRate, Double threshold) {
-        String message = String.format(
-                "🔔 *Внимание! Курс упал!*\n" +
-                        "💵 USD/RUB (sell): *%.2f*\n" +
-                        "📉 Порог: %.2f\n" +
-                        "⏰ %s",
-                currentRate, threshold, java.time.LocalDateTime.now()
-        );
-
+    public void sendUsdRateAlert(String message) {
         sendMarkdownMessage(appProperties.getTelegram().getChatId(), message);
     }
 

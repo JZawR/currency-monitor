@@ -11,7 +11,6 @@ public class AppProperties {
     private Sovcombank sovcombank = new Sovcombank();
     private Telegram telegram = new Telegram();
     private Scheduler scheduler = new Scheduler();
-    private History history = new History();
 
     @Data
     public static class Sovcombank {
@@ -33,10 +32,5 @@ public class AppProperties {
     @Data
     public static class Scheduler {
         private String cron = "0 0/30 * * * *";
-    }
-
-    @Data
-    public static class History {
-        private int retentionDays = 90;
     }
 }

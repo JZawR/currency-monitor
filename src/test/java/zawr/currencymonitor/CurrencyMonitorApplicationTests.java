@@ -28,6 +28,6 @@ class CurrencyMonitorApplicationTests {
 
     @Test
     void contextLoads() {
-        // Если контекст загрузился — тест пройден
+
     }
 }

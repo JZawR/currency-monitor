@@ -8,10 +8,25 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb://mongoadmin:root@localhost:27018/currency_monitor?authSource=admin}
       auto-index-creation: true
+  datasource:
+    url: jdbc:postgresql://${MAIN_DB_HOST}:${MAIN_DB_PORT}/test
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
 
 app:
   sovcombank:
-    api-url: https://prod-api.sovcombank.ru/service/currency-rate/index
+    api-url: https://prod-api.sovcombank.ru
     departments: "7100360"
     type: FIZ_NAL
   telegram:
@@ -23,11 +38,14 @@ app:
     alert-cooldown-minutes: 60
   scheduler:
     cron: "0 0/30 * * * *"
-  history:
-    retention-days: 90
 
 logging:
   level:
     root: INFO
     zawr.currencymonitor: DEBUG
     org.telegram.telegrambots: WARN
+
+#  spring.jdbc.driver=org.postgresql.Driver
+#  spring.jdbc.url=jdbc:postgresql://${MAIN_DB_HOST}:${MAIN_DB_PORT}/bpm
+#  spring.jdbc.username=postgres
+#  spring.jdbc.password=root
