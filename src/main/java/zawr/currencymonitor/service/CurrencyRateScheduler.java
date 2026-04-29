@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,18 +60,17 @@ public class CurrencyRateScheduler {
             log.warn("Error while saving currency rates", e);
         }
 
-        // Находим курс USD/RUB sell и проверяем пороги пользователей
+
         rates.stream()
-                .filter(r -> "USD".equalsIgnoreCase(r.getBase()))
-                .findFirst()
+                .min(Comparator.comparing(CurrencyRateEntity::getSell))
                 .ifPresent(this::checkAndNotifyAllUsers);
     }
 
     private List<CurrencyRateEntity> getBbrRates() {
+        log.info("trying get bbr bank currency rates");
         List<GraphQLResponse.RateElement> bbrRates = Collections.emptyList();
         try {
             bbrRates = bbrApiService.fetchRates("krasnodar", 10, "CASH_EXCHANGE").block(Duration.ofSeconds(5));
-            log.info("Currencies found bbrRates: {}", bbrRates);
         } catch (Exception e) {
             log.error("Error while fetching bbrRates ", e);
         }
@@ -78,15 +78,18 @@ public class CurrencyRateScheduler {
             log.warn("No bbrRates received from API");
             return Collections.emptyList();
         }
-        return bbrRates.stream().map(CurrencyRateMapper::BbrModelToEntity).toList();
+        return bbrRates.stream()
+                .filter(r -> "USD".equalsIgnoreCase(r.fromCurrency().code()))
+                .map(CurrencyRateMapper::BbrModelToEntity)
+                .peek(r -> log.info("bbr bank rate: {}", r.getSell()))
+                .toList();
     }
 
     private List<CurrencyRateEntity> getSovcombankRates() {
-
+        log.info("trying get sovcombank currency rates");
         List<SovcombankCurrencyRate> sovcombankRates = Collections.emptyList();
         try {
             sovcombankRates = apiService.fetchCurrencyRates();
-            log.info("Currencies found sovcombankRates: {}", sovcombankRates);
         } catch (Exception e) {
             log.error("Error while fetching sovcombankRates ", e);
         }
@@ -94,7 +97,11 @@ public class CurrencyRateScheduler {
             log.warn("No sovcombankRates received from API");
             return Collections.emptyList();
         }
-        return sovcombankRates.stream().map(CurrencyRateMapper::SovcombankModelToEntity).toList();
+        return sovcombankRates.stream()
+                .filter(r -> "USD".equalsIgnoreCase(r.getBase()))
+                .map(CurrencyRateMapper::SovcombankModelToEntity)
+                .peek(r -> log.info("sovcombank rate: {}", r.getSell()))
+                .toList();
     }
 
     /**
