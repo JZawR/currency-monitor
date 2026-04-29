@@ -3,7 +3,7 @@ package zawr.currencymonitor.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import zawr.currencymonitor.model.CurrencyRate;
+import zawr.currencymonitor.model.SovcombankCurrencyRate;
 import zawr.currencymonitor.properties.AppProperties;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class SovcombankApiService {
         log.info("SovcombankApiService initialized with WebClient");
     }
 
-    public List<CurrencyRate> fetchCurrencyRates() {
+    public List<SovcombankCurrencyRate> fetchCurrencyRates() {
         try {
             var props = appProperties.getSovcombank();
 
@@ -33,13 +33,12 @@ public class SovcombankApiService {
                             .queryParam("departments", props.getDepartments())
                             .build())
                     .retrieve()
-                    .bodyToFlux(CurrencyRate.class)
+                    .bodyToFlux(SovcombankCurrencyRate.class)
                     .collectList()
                     .block(); // blocking OK для scheduled task
 
         } catch (Exception e) {
-            log.error("Failed to fetch currency rates", e);
-            return List.of();
+            throw new RuntimeException(e);
         }
     }
 }
