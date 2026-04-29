@@ -1,16 +1,31 @@
 package zawr.currencymonitor.model;
 
 
+import zawr.currencymonitor.dto.GraphQLResponse;
 import zawr.currencymonitor.entity.CurrencyRateEntity;
 
-public class CurrencyRateMapper {
+import java.time.LocalDateTime;
 
-    public static CurrencyRateEntity modelToEntity(CurrencyRate model) {
+public class CurrencyRateMapper {
+    public static final String BBR = "BBR";
+    public static final String SOVCOMBANK = "SOVCOMBANK";
+
+    public static CurrencyRateEntity SovcombankModelToEntity(SovcombankCurrencyRate model) {
         CurrencyRateEntity rateEntity = new CurrencyRateEntity();
-        rateEntity.setId(model.getId());
         rateEntity.setSell(model.getSell());
         rateEntity.setBase(model.getBase());
         rateEntity.setFetchedAt(model.getFetchedAt());
+        rateEntity.setBank(SOVCOMBANK);
+        return rateEntity;
+    }
+
+    public static CurrencyRateEntity BbrModelToEntity(GraphQLResponse.RateElement model) {
+        CurrencyRateEntity rateEntity = new CurrencyRateEntity();
+        rateEntity.setId(String.valueOf(model.id()));
+        rateEntity.setSell(String.valueOf(model.sellRate()));
+        rateEntity.setBase(model.fromCurrency().code());
+        rateEntity.setFetchedAt(LocalDateTime.now());
+        rateEntity.setBank(BBR);
         return rateEntity;
     }
 }
