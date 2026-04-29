@@ -1,5 +1,5 @@
 server:
-  port: 8089
+  port: 8090
 
 spring:
   application:
@@ -31,7 +31,6 @@ app:
     type: FIZ_NAL
   telegram:
     bot-token: ${TELEGRAM_BOT_TOKEN:dummy_token_for_tests}
-    chat-id: ${TELEGRAM_CHAT_ID:123456789}
     bot-username: ${TELEGRAM_BOT_USERNAME:currency_monitor_bot}
     threshold-usd-sell: 80.0
     anti-spam-enabled: true

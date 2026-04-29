@@ -21,7 +21,6 @@ public class CurrencyRateMapper {
 
     public static CurrencyRateEntity BbrModelToEntity(GraphQLResponse.RateElement model) {
         CurrencyRateEntity rateEntity = new CurrencyRateEntity();
-        rateEntity.setId(String.valueOf(model.id()));
         rateEntity.setSell(String.valueOf(model.sellRate()));
         rateEntity.setBase(model.fromCurrency().code());
         rateEntity.setFetchedAt(LocalDateTime.now());
