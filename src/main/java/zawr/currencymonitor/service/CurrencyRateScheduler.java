@@ -39,7 +39,7 @@ public class CurrencyRateScheduler {
     private final BbrApiService bbrApiService;
     private final CurrencyRateService currencyRateService;
 
-    @Scheduled(cron = "${app.scheduler.cron}")
+    @Scheduled(cron = "${app.scheduler.cron}", scheduler = "schedulerTaskExecutor")
     @Transactional
     public void checkUsdRate() {
         log.info("Starting scheduled currency rate check...");

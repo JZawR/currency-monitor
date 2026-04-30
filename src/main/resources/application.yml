@@ -14,9 +14,11 @@ spring:
     password: root
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 20000
-      maximum-pool-size: 5
+      connection-timeout: 5000
+      maximum-pool-size: 10
+      leak-detection-threshold: 10000
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import zawr.currencymonitor.entity.CurrencyRateEntity;
 import zawr.currencymonitor.repository.CurrencyRateRepository;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional
@@ -16,5 +18,9 @@ public class CurrencyRateService {
 
     public void save(CurrencyRateEntity rate) {
         currencyRateRepository.save(rate);
+    }
+
+    public List<CurrencyRateEntity> findLatestByEachBank() {
+        return currencyRateRepository.findLatestByEachBank();
     }
 }

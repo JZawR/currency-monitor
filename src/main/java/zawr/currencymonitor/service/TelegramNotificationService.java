@@ -7,28 +7,31 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import zawr.currencymonitor.entity.CurrencyRateEntity;
 import zawr.currencymonitor.properties.AppProperties;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 @Slf4j
+
 public class TelegramNotificationService extends TelegramLongPollingBot {
 
     private final AppProperties appProperties;
     private final ThresholdService thresholdService;
+    private final CurrencyRateService currencyRateService;
 
     private static final Pattern SET_COMMAND_PATTERN = Pattern.compile("^/set\\s+([0-9]+(?:\\.[0-9]+)?)$");
 
-    public TelegramNotificationService(
-            AppProperties appProperties,
-            ThresholdService thresholdService) {
+    public TelegramNotificationService(AppProperties appProperties, ThresholdService thresholdService, CurrencyRateService currencyRateService) {
         super(appProperties.getTelegram().getBotToken());
         this.appProperties = appProperties;
         this.thresholdService = thresholdService;
+        this.currencyRateService = currencyRateService;
         log.info("Telegram bot initialized with threshold management");
     }
 
@@ -39,29 +42,34 @@ public class TelegramNotificationService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (!update.hasMessage() || !update.getMessage().hasText()) {
-            return;
-        }
+        try {
 
-        Message message = update.getMessage();
-        String chatId = message.getChatId().toString();
-        String text = message.getText().trim();
+            if (!update.hasMessage() || !update.getMessage().hasText()) {
+                return;
+            }
 
-        log.debug("Received message from chat {}: {}", chatId, text);
+            Message message = update.getMessage();
+            String chatId = message.getChatId().toString();
+            String text = message.getText().trim();
 
-        if (text.startsWith("/start") || text.equalsIgnoreCase("привет")) {
-            sendWelcomeMessage(chatId);
-        } else if (text.startsWith("/help")) {
-            sendHelpMessage(chatId);
-        } else if (text.startsWith("/set")) {
-            handleSetCommand(chatId, text);
-        } else if (text.equalsIgnoreCase("/get") || text.equalsIgnoreCase("/threshold")) {
-            handleGetCommand(chatId);
-        } else if (text.equalsIgnoreCase("/off") || text.equalsIgnoreCase("/disable")) {
-            handleDisableCommand(chatId);
-        } else {
-            // Игнорируем остальные сообщения или можно добавить fallback
-            log.debug("Unknown command from chat {}: {}", chatId, text);
+            log.debug("Received message from chat {}: {}", chatId, text);
+
+            if (text.startsWith("/start") || text.equalsIgnoreCase("привет")) {
+                sendWelcomeMessage(chatId);
+            } else if (text.startsWith("/help")) {
+                sendHelpMessage(chatId);
+            } else if (text.startsWith("/set")) {
+                handleSetCommand(chatId, text);
+            } else if (text.equalsIgnoreCase("/get") || text.equalsIgnoreCase("/threshold")) {
+                handleGetCommand(chatId);
+            } else if (text.equalsIgnoreCase("/off") || text.equalsIgnoreCase("/disable")) {
+                handleDisableCommand(chatId);
+            } else {
+                // Игнорируем остальные сообщения или можно добавить fallback
+                log.debug("Unknown command from chat {}: {}", chatId, text);
+            }
+        } catch (Exception e) {
+            log.error("Ошибка обработки апдейта", e);
         }
     }
 
@@ -112,9 +120,15 @@ public class TelegramNotificationService extends TelegramLongPollingBot {
 
     private void handleGetCommand(String chatId) {
         Optional<BigDecimal> thresholdOpt = thresholdService.getThreshold(chatId);
+        StringBuilder allBanks = new StringBuilder();
+        List<CurrencyRateEntity> latestByEachBank = currencyRateService.findLatestByEachBank();
+        System.out.println("latestByEachBank: " + latestByEachBank);
+        latestByEachBank.forEach(bank -> allBanks.append(bank.getBank()).append(": ").append(bank.getSell()).append("\n"));
+
 
         if (thresholdOpt.isPresent()) {
             String text = String.format(
+                    "текущий курс: \n" + allBanks +
                     "📊 Ваш текущий порог: *%.2f RUB*\n" +
                             "🔔 Уведомления: *включены*",
                     thresholdOpt.get().doubleValue());
