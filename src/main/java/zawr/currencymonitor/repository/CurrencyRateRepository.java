@@ -10,7 +10,7 @@ public interface CurrencyRateRepository extends JpaRepository<CurrencyRateEntity
     @Query(value = """
         SELECT DISTINCT ON (bank) * 
         FROM currency_rate_entity
-        ORDER BY bank, created_at DESC
+        ORDER BY bank, fetched_at DESC
         """, nativeQuery = true)
     List<CurrencyRateEntity> findLatestByEachBank();
 }

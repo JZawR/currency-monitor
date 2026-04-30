@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-
 public class TelegramNotificationService extends TelegramLongPollingBot {
 
     private final AppProperties appProperties;
